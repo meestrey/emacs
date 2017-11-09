@@ -1,3 +1,4 @@
+
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
@@ -6,7 +7,7 @@
 (require 'package)
 
 (add-to-list 'package-archives
-             '("melpa stable" . "https://stable.melpa.org/packages/") t)
+             '("melpa stable" . "http://stable.melpa.org/packages/") t)
 ;             '("melpa" . "https://melpa.milkbox.net/packages/") t)
 ;             '("melpa" . "https://melpa.org/packages/") t)
 
@@ -21,6 +22,7 @@
 ;; (add-hook 'after-init-hook 'global-company-mode)
 ;; (require 'company)
 (use-package company
+  :ensure t
   :config
   (setq company-tooltip-limit 20) ;; bigger popup
   (setq company-idle-delay 0.3)
@@ -41,7 +43,20 @@
 ;; lisp
 (add-to-list 'load-path "~/.emacs.d/ess/lisp")
 
+;; scheme
+(setq scheme-program-name "/opt/local/bin/mit-scheme")
+(add-hook 'scheme-mode-hook
+	  (lambda () (show-paren-mode 1))
+	  )
+
+;; haskell
+;;(add-hook 'haskell-mode-hook 'haskell-indent-mode)
+(add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+
 ;; go
+(use-package company-go
+  :ensure t
+  )
 (require 'company-go)
 (add-hook 'go-mode-hook (lambda ()
                           (set (make-local-variable 'company-backends) '(company-go))
@@ -49,12 +64,14 @@
                           (add-hook 'before-save-hook 'gofmt-before-save)
                           (setq gofmt-command "goimports")
                           (local-set-key (kbd "M-.") 'godef-jump)
-;;                          (local-set-key (kbd "M-*") 'pop-tag-mark)
+                          ;;                          (local-set-key (kbd "M-*") 'pop-tag-mark)
+                          (local-set-key (kbd "C-c C-r" 'go-remove-unused-imports))
                           (company-mode)))
 
-;; key
+;; keys
 (global-set-key "\M-g" 'goto-line)
-
+(global-set-key (kbd "C-c C-u") 'uncomment-region)
+(global-set-key (kbd "C-c C-c") 'comment-region)
 
 ;;(custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -110,11 +127,12 @@
 ;; replace the `completion-at-point' and `complete-symbol' bindings in
 ;; irony-mode's buffers by irony-mode's function
 
-;(defun my-irony-mode-hook ()
-;(define-key irony-mode-map [remap completion-at-point] 'irony-completion-at-point-async)
-;  (define-key irony-mode-map [remap complete-symbol] 'irony-completion-at-point-async))
-;(add-hook 'irony-mode-hook 'my-irony-mode-hook)
-;(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options) (eval-after-load 'company '(add-to-list 'company-backends 'company-irony))
+(defun my-irony-mode-hook ()
+(define-key irony-mode-map [remap completion-at-point] 'irony-completion-at-point-async)
+  (define-key irony-mode-map [remap complete-symbol] 'irony-completion-at-point-async))
+(add-hook 'irony-mode-hook 'my-irony-mode-hook)
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+(eval-after-load 'company '(add-to-list 'company-backends 'company-irony))
 
 ;; (optional) adds CC special commands to `company-begin-commands' in order to
 ;; trigger completion at interesting places, such as after scope operator
@@ -136,6 +154,16 @@
   :ensure t
   )
 (eval-after-load 'flycheck '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+
+(add-hook 'c++-mode-hook
+          (lambda ()
+            (setq flycheck-clang-language-standard "c++1y")
+            (setq flycheck-clang-include-path
+                  (list ("/usr/local/boost/include/")))
+            ))
+;;(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++1y")))
+;;(add-hook 'c++-mode-hook (setq flycheck-gcc-language-standard "c++11"))
+
 ;; =============
 ;; eldoc-mode
 ;; =============
